@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Max Token Wahana</title>
+    <!-- Style untuk html nya -->
+    <style>
+        body {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #5f373765;
+        }
+        pre {
+            margin: 5px;
+        }
+    
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #D0f0C0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 20px;
+        }
+    
+        .left-container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+            margin-right: 20px;
+        }
+    
+        .right-container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+            margin-left: 20px;
+        }
+    
+    </style>
+    <script>
+        // Function untuk calculate greedy dan brute force dan generate hasilnya
+        function calculate() {
+            // Ambil nilai dari input user
+            var Acapacity = parseInt(document.getElementById("capacity").value);
+            var Bcapacity = Acapacity; // Bcapacity untuk BF, Acapacity untuk greedy
+            var k = parseInt(document.getElementById("k").value);
+            var Awahanas = []; // Untuk menyimpan data wahana, digunakan untuk greedy
+            var Bwahanas = []; // Untuk menyimpan data wahana, digunakan untuk BF
+
+            // Mengambil nilai token dan waittime wahana dari user
+            for (var i = 0; i < k; i++) {
+                var token = parseInt(document.getElementById("token" + i).value);
+                var waittime = parseInt(document.getElementById("waittime" + i).value);
+                Awahanas.push({ Nowahana: i, Token: token, WaitTime: waittime });
+                Bwahanas.push({ Nowahana: i, Token: token, WaitTime: waittime });
+            }
+
+            // sort Awahanas secara descending
+            Awahanas.sort(function(a, b) {
+                if (b.Token === a.Token) { // Jika token dari dua objek wahana sama
+                    return a.WaitTime - b.WaitTime; // urutkan yang waittime lebih kecil
+                }
+                return b.Token - a.Token; // Urutkan yang token yang lebih besar
+            });
+
+            // Calculate Greedy secara iterative
+            var totalGreedy = 0;
+            var selectedWahanaGreedy = [];
+            var greedyCount = 1;
+
+            var greedyStepsElement = document.getElementById("greedySteps");
+            greedyStepsElement.innerHTML = ""; // Kosongkan isi untuk step berikutnya
+
+            for (var i = 0; i < k; i++) { 
+                // Pada setiap iterasi, dilakukan pengecekan apakah WaitTime 
+                // dari wahana saat ini kurang dari atau sama dengan Acapacity
+
+                // Jika wahana dapat dipilih, maka nilai Token wahana tersebut 
+                // ditambahkan ke totalGreedy, Acapacity dikurangi dengan WaitTime 
+                // wahana tersebut, dan indeks wahana (Nowahana) ditambahkan ke selectedWahanaGreedy.
+                if (Awahanas[i].WaitTime <= Acapacity) {
+                    totalGreedy += Awahanas[i].Token;
+                    Acapacity -= Awahanas[i].WaitTime;
+                    selectedWahanaGreedy.push(Awahanas[i].Nowahana);
+
+                    // Print greedy steps
+                    var stepResult = "Step " + greedyCount + ": Max Token Value: " + totalGreedy;
+                    stepResult += ", Selected Wahana(s): ";
+                    for (var j = 0; j < selectedWahanaGreedy.length; j++) {
+                        stepResult += "Wahana " + (selectedWahanaGreedy[j] + 1) + " ";
+                    }
+                    greedyStepsElement.innerHTML += "<p>" + stepResult + "</p>";
+                    greedyCount++;
+                }
+            }
+
+            // Print greedy result
+            document.getElementById("greedyResult").textContent = "Max Token Value: " + totalGreedy;
+
+            var selectedWahanaTextGreedy = "Selected Wahana(s): ";
+            for (var i = 0; i < selectedWahanaGreedy.length; i++) {
+                selectedWahanaTextGreedy += "Wahana " + (selectedWahanaGreedy[i] + 1) + " ";
+            }
+            document.getElementById("greedySelectedWahana").textContent = selectedWahanaTextGreedy;
+
+            // Calculate Brute Force secara iterative
+            var totalBF = 0;
+            var selectedWahanaBF = [];
+            var maxTokenValue = 0;
+            var combinations = Math.pow(2, k) - 1;// Menghitung jumlah kombinasi berdasarkan k
+            // digunakan (2^k)-1 karena dihapus kombinasi dimana tidak diambil wahana apapun 
+
+            var BFStepsElement = document.getElementById("BFSteps");
+            BFStepsElement.innerHTML = ""; // Kosongkan isi untuk step berikutnya
+
+            for (var i = 1; i <= combinations; i++) { // loop sebanyak kombinasi
+                var currentCombination = i;
+                var currentCapacity = Bcapacity;
+                var currentTokenValue = 0;
+                var currentSelectedWahanas = [];
+
+                // Pada setiap iterasi, dilakukan pengecekan apakah 
+                // bit paling kanan dari currentCombination adalah 1 
+                // (wahana tersebut dipilih di kombinasi ini) dan 
+                // cek WaitTime wahana tersebut <= currentCapacity.
+                for (var j = 0; j < k; j++) { // loop sebanyak k kali
+                    if ((currentCombination & 1) === 1 && Bwahanas[j].WaitTime <= currentCapacity) {
+                        currentTokenValue += Bwahanas[j].Token;
+                        currentCapacity -= Bwahanas[j].WaitTime;
+                        currentSelectedWahanas.push(Bwahanas[j].Nowahana);
+                    }
+                    // Digunakan untuk menggeser kombinasi saat ini ke kanan, 
+                    // sehingga bit paling kanan yang sudah diproses tidak dipakai lagi.
+                    currentCombination >>= 1;
+                }
+                // Pengecekan apakah currentTokenValue lebih besar dari maxTokenValue. 
+                // Jika ya, maka nilai maxTokenValue, totalBF, dan selectedWahanaBF diperbarui 
+                // dengan nilai dari kombinasi saat ini.
+                if (currentTokenValue > maxTokenValue) {
+                    maxTokenValue = currentTokenValue;
+                    totalBF = currentTokenValue;
+                    selectedWahanaBF = currentSelectedWahanas;
+                }
+
+                // Print brute force step
+                var stepResult = "Step " + i + ": Max Token Value: " + currentTokenValue;
+                stepResult += ", Selected Wahana(s): ";
+                for (var j = 0; j < currentSelectedWahanas.length; j++) {
+                    stepResult += "Wahana " + (currentSelectedWahanas[j] + 1) + " ";
+                }
+                BFStepsElement.innerHTML += "<p>" + stepResult + "</p>";
+            }
+
+            // Print brute force result
+            document.getElementById("BFResult").textContent = "Max Token Value: " + totalBF;
+
+            var selectedWahanaTextBF = "Selected Wahana(s): ";
+            for (var i = 0; i < selectedWahanaBF.length; i++) {
+                selectedWahanaTextBF += "Wahana " + (selectedWahanaBF[i] + 1) + " ";
+            }
+            document.getElementById("BFSelectedWahana").textContent = selectedWahanaTextBF;
+        }
+
+        //Function untuk generate tabel input token dan waittime berdasarkan k
+        function generateWahanaInputs() {
+            var k = parseInt(document.getElementById("k").value);
+            var inputsDiv = document.getElementById("wahanaInputs");
+            inputsDiv.innerHTML = "";
+
+            for (var i = 0; i < k; i++) {
+                var inputDiv = document.createElement("div");
+                var label = document.createElement("label");
+                label.textContent = "Wahana " + (i + 1) + ": ";
+
+                var tokenInput = document.createElement("input");
+                tokenInput.type = "number";
+                tokenInput.id = "token" + i;
+                tokenInput.placeholder = "Token";
+
+                var waittimeInput = document.createElement("input");
+                waittimeInput.type = "number";
+                waittimeInput.id = "waittime" + i;
+                waittimeInput.placeholder = "Wait Time";
+
+                inputDiv.appendChild(label); // Add elemen <label> ke dalam elemen <div>
+                inputDiv.appendChild(tokenInput); // Add elemen <input> ke dalam elemen <div>
+                inputDiv.appendChild(waittimeInput); // Add elemen <input> ke dalam elemen <div>
+                inputsDiv.appendChild(inputDiv); // Add elemen <div> ke dalam elemen "wahanaInputs"
+            }
+
+            var lastWaittimeInput = document.getElementById("waittime" + (k - 1));
+            lastWaittimeInput.addEventListener("input", function() { // untuk listen input-an terakhir
+                calculate(); // Panggil fungsi "calculate" saat terjadi perubahan input
+            });
+        }
+    </script>    
+</head>
+<body>
+    <div class="left-container">
+        <h2>Greedy Output</h2>
+        <p id="greedyResult"></p>
+        <p id="greedySelectedWahana"></p>
+        <h4>Steps:</h4>
+        <p id="greedySteps"></p>
+    </div>
+
+    <div class="container">
+        <h1>Max Token Wahana</h1>
+        <h2>Anggota Da MF</h2>
+        <pre>Dhafa Nur Fadhilah           - 1301213263</pre>
+        <pre>Marcel Binggi Antonio Tobing - 1301210349</pre>
+        <pre>Fadli Dwi Ramadhan           - 1301210062</pre>
+        <pre> </pre>
+            <label for="capacity">Theme Park dibuka selama (jam): </label>
+            <input type="number" id="capacity" onchange="calculate()"><br><br>
+
+            <label for="k">Jumlah Wahana: </label>
+            <input type="number" id="k" onchange="generateWahanaInputs()"><br><br>
+
+            <div id="wahanaInputs"></div>
+
+        <div id="result"></div>
+        <div id="selectedWahana"></div>
+    </div>
+
+    <div class="right-container">
+        <h2>Brute Force Output</h2>
+        <p id="BFResult"></p>
+        <p id="BFSelectedWahana"></p>
+        <h4>Steps:</h4>
+        <p id="BFSteps"></p>
+    </div>
+</body>
+</html>
