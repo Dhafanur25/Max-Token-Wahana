@@ -1,0 +1,1 @@
+Max Token Wahana adalah masalah dimana jika suatu amusement park dengan N banyak wahana mengeluarkan poin dan waktu antri yang berbeda-beda beserta constraint hanya bisa bermain satu wahana sekali. Tujuan nya mencari wahana apa saja yang dimainkan dalam kurun waktu yang di tentukan supaya mendapat token terbanyak.
